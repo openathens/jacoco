@@ -12,6 +12,7 @@
  *******************************************************************************/
 package org.jacoco.report.check;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -31,6 +32,7 @@ class BundleChecker {
 
 	private final ILanguageNames names;
 	private final IViolationsOutput output;
+	private final ICoverageFileOutput coverageFileOutput;
 
 	private final Collection<Rule> bundleRules;
 	private final Collection<Rule> packageRules;
@@ -44,9 +46,11 @@ class BundleChecker {
 	private final boolean traverseMethods;
 
 	public BundleChecker(final Collection<Rule> rules,
-			final ILanguageNames names, final IViolationsOutput output) {
+			final ILanguageNames names, final IViolationsOutput output,
+			ICoverageFileOutput coverageFileOutput) {
 		this.names = names;
 		this.output = output;
+		this.coverageFileOutput = coverageFileOutput;
 		this.bundleRules = new ArrayList<Rule>();
 		this.packageRules = new ArrayList<Rule>();
 		this.classRules = new ArrayList<Rule>();
@@ -134,6 +138,7 @@ class BundleChecker {
 			if (rule.matches(elementname)) {
 				for (final Limit limit : rule.getLimits()) {
 					checkLimit(node, typename, elementname, rule, limit);
+					writeCoveredRatioToFile(limit);
 				}
 			}
 		}
@@ -146,6 +151,15 @@ class BundleChecker {
 			output.onViolation(node, rule, limit,
 					String.format("Rule violated for %s %s: %s", elementtype,
 							elementname, message));
+		}
+	}
+
+	private void writeCoveredRatioToFile(final Limit limit) {
+		try {
+			coverageFileOutput
+					.writeCoverageRatioToFile(limit.getCurrentCoveredRatio());
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

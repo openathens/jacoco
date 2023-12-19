@@ -12,8 +12,15 @@
  *******************************************************************************/
 package org.jacoco.report.check;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -32,29 +39,43 @@ import org.jacoco.core.internal.analysis.PackageCoverageImpl;
 import org.jacoco.core.internal.analysis.SourceFileCoverageImpl;
 import org.jacoco.report.ILanguageNames;
 import org.jacoco.report.JavaNames;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 /**
  * Unit tests for {@link BundleChecker}.
  */
-public class BundleCheckerTest implements IViolationsOutput {
+public class BundleCheckerTest
+		implements IViolationsOutput, ICoverageFileOutput {
 
 	private List<Rule> rules;
 	private ILanguageNames names;
 	private List<String> messages;
+	private File tempFile;
+	private FileWriter writer;
 
 	@Before
-	public void setup() {
+	public void setup() throws IOException {
 		rules = new ArrayList<Rule>();
 		names = new JavaNames();
 		messages = new ArrayList<String>();
+		tempFile = File.createTempFile("jacoco-codeCoverageRatio", "");
+		writer = new FileWriter(tempFile);
+	}
+
+	@After
+	public void tearDown() {
+		if (tempFile.exists()) {
+			tempFile.delete();
+		}
 	}
 
 	@Test
 	public void testBundleLimit() {
 		addRule(ElementType.BUNDLE);
-		final BundleChecker checker = new BundleChecker(rules, names, this);
+		final BundleChecker checker = new BundleChecker(rules, names, this,
+				this);
 		checker.checkBundle(createBundle());
 		assertMessage(
 				"Rule violated for bundle Test: instructions covered ratio is 0.50, but expected minimum is 0.75");
@@ -63,7 +84,8 @@ public class BundleCheckerTest implements IViolationsOutput {
 	@Test
 	public void testPackageLimit() {
 		addRule(ElementType.PACKAGE);
-		final BundleChecker checker = new BundleChecker(rules, names, this);
+		final BundleChecker checker = new BundleChecker(rules, names, this,
+				this);
 		checker.checkBundle(createBundle());
 		assertMessage(
 				"Rule violated for package org.jacoco.example: instructions covered ratio is 0.50, but expected minimum is 0.75");
@@ -72,7 +94,8 @@ public class BundleCheckerTest implements IViolationsOutput {
 	@Test
 	public void testSourceFileLimit() {
 		addRule(ElementType.SOURCEFILE);
-		final BundleChecker checker = new BundleChecker(rules, names, this);
+		final BundleChecker checker = new BundleChecker(rules, names, this,
+				this);
 		checker.checkBundle(createBundle());
 		assertMessage(
 				"Rule violated for source file org/jacoco/example/FooClass.java: instructions covered ratio is 0.50, but expected minimum is 0.75");
@@ -81,7 +104,8 @@ public class BundleCheckerTest implements IViolationsOutput {
 	@Test
 	public void testClassLimit() {
 		addRule(ElementType.CLASS);
-		final BundleChecker checker = new BundleChecker(rules, names, this);
+		final BundleChecker checker = new BundleChecker(rules, names, this,
+				this);
 		checker.checkBundle(createBundle());
 		assertMessage(
 				"Rule violated for class org.jacoco.example.FooClass: instructions covered ratio is 0.50, but expected minimum is 0.75");
@@ -90,7 +114,8 @@ public class BundleCheckerTest implements IViolationsOutput {
 	@Test
 	public void testMethodLimit() {
 		addRule(ElementType.METHOD);
-		final BundleChecker checker = new BundleChecker(rules, names, this);
+		final BundleChecker checker = new BundleChecker(rules, names, this,
+				this);
 		checker.checkBundle(createBundle());
 		assertMessage(
 				"Rule violated for method org.jacoco.example.FooClass.fooMethod(): instructions covered ratio is 0.50, but expected minimum is 0.75");
@@ -99,27 +124,49 @@ public class BundleCheckerTest implements IViolationsOutput {
 	@Test
 	public void testGroupLimitNotSupported() {
 		addRule(ElementType.GROUP);
-		final BundleChecker checker = new BundleChecker(rules, names, this);
+		final BundleChecker checker = new BundleChecker(rules, names, this,
+				this);
 		checker.checkBundle(createBundle());
 		assertEquals(Collections.emptyList(), messages);
 	}
 
 	@Test
-	public void testLimitOk() {
+	public void testLimitOk() throws IOException {
 		final Rule rule = new Rule();
 		rule.setElement(ElementType.BUNDLE);
 		final Limit limit = rule.createLimit();
 		limit.setMinimum("0.25");
 		rules.add(rule);
-		final BundleChecker checker = new BundleChecker(rules, names, this);
+		final BundleChecker checker = new BundleChecker(rules, names, this,
+				this);
 		checker.checkBundle(createBundle());
 		assertEquals(Collections.emptyList(), messages);
 	}
 
 	@Test
+	public void testCoveredRatioLimitFileCorrect() throws IOException {
+		final Rule rule = new Rule();
+		rule.setElement(ElementType.BUNDLE);
+		final Limit limit = rule.createLimit();
+		limit.setMinimum("0.25");
+		limit.setCurrentCoveredRatio(BigDecimal.valueOf(0.50));
+		rules.add(rule);
+		final BundleChecker checker = new BundleChecker(rules, names, this,
+				this);
+		checker.checkBundle(createBundle());
+
+		BufferedReader reader = new BufferedReader(new FileReader(tempFile));
+		String fileContent = reader.readLine();
+		reader.close();
+		assertTrue(tempFile.exists());
+		assertEquals("0.50", fileContent);
+	}
+
+	@Test
 	public void testBundleNoMatch() {
 		addRule(ElementType.BUNDLE).setExcludes("*");
-		final BundleChecker checker = new BundleChecker(rules, names, this);
+		final BundleChecker checker = new BundleChecker(rules, names, this,
+				this);
 		checker.checkBundle(createBundle());
 		assertEquals(Collections.emptyList(), messages);
 	}
@@ -163,4 +210,10 @@ public class BundleCheckerTest implements IViolationsOutput {
 		messages.add(message);
 	}
 
+	@Override
+	public void writeCoverageRatioToFile(BigDecimal coverageRatio)
+			throws IOException {
+		writer.write(String.valueOf(coverageRatio));
+		writer.close();
+	}
 }

@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -46,6 +47,7 @@ import org.jacoco.report.IReportGroupVisitor;
 import org.jacoco.report.IReportVisitor;
 import org.jacoco.report.MultiReportVisitor;
 import org.jacoco.report.ZipMultiReportOutput;
+import org.jacoco.report.check.ICoverageFileOutput;
 import org.jacoco.report.check.IViolationsOutput;
 import org.jacoco.report.check.Limit;
 import org.jacoco.report.check.Rule;
@@ -346,7 +348,7 @@ public class ReportTask extends Task {
 	 * Formatter element for coverage checks.
 	 */
 	public class CheckFormatterElement extends FormatterElement
-			implements IViolationsOutput {
+			implements IViolationsOutput, ICoverageFileOutput {
 
 		private final List<Rule> rules = new ArrayList<Rule>();
 		private boolean violations = false;
@@ -389,7 +391,7 @@ public class ReportTask extends Task {
 		public IReportVisitor createVisitor() throws IOException {
 			final RulesChecker formatter = new RulesChecker();
 			formatter.setRules(rules);
-			return formatter.createVisitor(this);
+			return formatter.createVisitor(this, this);
 		}
 
 		public void onViolation(final ICoverageNode node, final Rule rule,
@@ -402,6 +404,12 @@ public class ReportTask extends Task {
 						: String.format("%s\n%s", old, message);
 				getProject().setProperty(violationsPropery, value);
 			}
+		}
+
+		@Override
+		public void writeCoverageRatioToFile(BigDecimal coverageRatio)
+				throws IOException {
+
 		}
 
 		@Override

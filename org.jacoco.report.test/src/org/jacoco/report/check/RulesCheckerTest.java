@@ -15,6 +15,7 @@ package org.jacoco.report.check;
 import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -30,14 +31,15 @@ import org.junit.Test;
 /**
  * Unit tests for {@link Limit}.
  */
-public class RulesCheckerTest implements IViolationsOutput {
+public class RulesCheckerTest
+		implements IViolationsOutput, ICoverageFileOutput {
 
 	private RulesChecker checker;
 	private ReportStructureTestDriver driver;
 	private List<String> messages;
 
 	@Before
-	public void setup() {
+	public void setup() throws IOException {
 		checker = new RulesChecker();
 		driver = new ReportStructureTestDriver();
 		messages = new ArrayList<String>();
@@ -50,7 +52,7 @@ public class RulesCheckerTest implements IViolationsOutput {
 		limit.setValue(CounterValue.MISSEDCOUNT.name());
 		limit.setMaximum("5");
 		checker.setRules(Arrays.asList(rule));
-		driver.sendGroup(checker.createVisitor(this));
+		driver.sendGroup(checker.createVisitor(this, this));
 		assertEquals(Arrays.asList(
 				"Rule violated for bundle bundle: instructions missed count is 10, but expected maximum is 5"),
 				messages);
@@ -90,7 +92,7 @@ public class RulesCheckerTest implements IViolationsOutput {
 			}
 		});
 
-		driver.sendGroup(checker.createVisitor(this));
+		driver.sendGroup(checker.createVisitor(this, this));
 		assertEquals(Arrays.asList(
 				"Rule violated for class MyClass: instructions missed count is 10, but expected maximum is 5"),
 				messages);
@@ -101,4 +103,7 @@ public class RulesCheckerTest implements IViolationsOutput {
 		messages.add(message);
 	}
 
+	public void writeCoverageRatioToFile(BigDecimal coverageRatio) {
+
+	}
 }

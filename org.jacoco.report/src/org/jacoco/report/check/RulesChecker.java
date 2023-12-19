@@ -71,9 +71,10 @@ public class RulesChecker {
 	 *            call-back to report violations to
 	 * @return visitor to emit the report data to
 	 */
-	public IReportVisitor createVisitor(final IViolationsOutput output) {
+	public IReportVisitor createVisitor(final IViolationsOutput output,
+			final ICoverageFileOutput coverageFileOutput) {
 		final BundleChecker bundleChecker = new BundleChecker(rules,
-				languageNames, output);
+				languageNames, output, coverageFileOutput);
 		return new IReportVisitor() {
 
 			public IReportGroupVisitor visitGroup(final String name)

@@ -15,7 +15,9 @@
 package org.jacoco.maven;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +27,7 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.jacoco.core.analysis.ICoverageNode;
 import org.jacoco.report.IReportVisitor;
+import org.jacoco.report.check.ICoverageFileOutput;
 import org.jacoco.report.check.IViolationsOutput;
 import org.jacoco.report.check.Limit;
 import org.jacoco.report.check.Rule;
@@ -35,7 +38,8 @@ import org.jacoco.report.check.Rule;
  * @since 0.6.1
  */
 @Mojo(name = "check", defaultPhase = LifecyclePhase.VERIFY, threadSafe = true)
-public class CheckMojo extends AbstractJacocoMojo implements IViolationsOutput {
+public class CheckMojo extends AbstractJacocoMojo
+		implements IViolationsOutput, ICoverageFileOutput {
 
 	private static final String MSG_SKIPPING = "Skipping JaCoCo execution due to missing execution data file:";
 	private static final String CHECK_SUCCESS = "All coverage checks have been met.";
@@ -130,6 +134,19 @@ public class CheckMojo extends AbstractJacocoMojo implements IViolationsOutput {
 	private File dataFile;
 
 	/**
+	 * File with execution data.
+	 */
+	@Parameter(defaultValue = "${project.build.directory}/jacoco-codeCoverageRatio")
+	private File codeCoverageRatioFile;
+
+	/**
+	 * Optionally output a plain text file to the build directory stating the
+	 * current code coverage level rounded down.
+	 */
+	@Parameter(property = "jacoco.logCodeCoverageRatioToFile", defaultValue = "false")
+	private boolean logCodeCoverageRatioToFile;
+
+	/**
 	 * A list of class files to include into analysis. May use wildcard
 	 * characters (* and ?). When not specified everything will be included.
 	 */
@@ -178,7 +195,7 @@ public class CheckMojo extends AbstractJacocoMojo implements IViolationsOutput {
 		for (final RuleConfiguration r : rules) {
 			checkerrules.add(r.rule);
 		}
-		support.addRulesChecker(checkerrules, this);
+		support.addRulesChecker(checkerrules, this, this);
 
 		try {
 			final IReportVisitor visitor = support.initRootVisitor();
@@ -206,4 +223,19 @@ public class CheckMojo extends AbstractJacocoMojo implements IViolationsOutput {
 		violations = true;
 	}
 
+	@Override
+	public void writeCoverageRatioToFile(BigDecimal coverageRatio)
+			throws IOException {
+		if (logCodeCoverageRatioToFile) {
+			boolean fileCreated = codeCoverageRatioFile.createNewFile();
+			if (!fileCreated || !codeCoverageRatioFile.exists()) {
+				getLog().info("Could not create covered ratio file");
+			} else {
+				try (FileWriter writer = new FileWriter(
+						codeCoverageRatioFile)) {
+					writer.write(String.valueOf(coverageRatio));
+				}
+			}
+		}
+	}
 }

@@ -35,6 +35,7 @@ import org.jacoco.report.IReportGroupVisitor;
 import org.jacoco.report.IReportVisitor;
 import org.jacoco.report.ISourceFileLocator;
 import org.jacoco.report.MultiReportVisitor;
+import org.jacoco.report.check.ICoverageFileOutput;
 import org.jacoco.report.check.IViolationsOutput;
 import org.jacoco.report.check.Rule;
 import org.jacoco.report.check.RulesChecker;
@@ -88,10 +89,11 @@ final class ReportSupport {
 	}
 
 	public void addRulesChecker(final List<Rule> rules,
-			final IViolationsOutput output) {
+			final IViolationsOutput output,
+			final ICoverageFileOutput coverageFileOutput) {
 		final RulesChecker checker = new RulesChecker();
 		checker.setRules(rules);
-		formatters.add(checker.createVisitor(output));
+		formatters.add(checker.createVisitor(output, coverageFileOutput));
 	}
 
 	public IReportVisitor initRootVisitor() throws IOException {

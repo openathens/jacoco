@@ -57,6 +57,8 @@ public class Limit {
 
 	private BigDecimal maximum;
 
+	private BigDecimal currentCoveredRatio;
+
 	/**
 	 * Creates a new instance with the following defaults:
 	 * <ul>
@@ -153,6 +155,14 @@ public class Limit {
 		this.maximum = parseValue(maximum);
 	}
 
+	public BigDecimal getCurrentCoveredRatio() {
+		return currentCoveredRatio;
+	}
+
+	public void setCurrentCoveredRatio(BigDecimal currentCoveredRatio) {
+		this.currentCoveredRatio = currentCoveredRatio;
+	}
+
 	private static BigDecimal parseValue(final String value) {
 		if (value == null) {
 			return null;
@@ -177,7 +187,13 @@ public class Limit {
 		if (Double.isNaN(d)) {
 			return null;
 		}
+
 		final BigDecimal bd = BigDecimal.valueOf(d);
+		if (minimum != null) {
+			setCurrentCoveredRatio(
+					bd.setScale(minimum.scale(), RoundingMode.FLOOR));
+		}
+
 		if (minimum != null && minimum.compareTo(bd) > 0) {
 			return message("minimum", bd, minimum, RoundingMode.FLOOR);
 		}

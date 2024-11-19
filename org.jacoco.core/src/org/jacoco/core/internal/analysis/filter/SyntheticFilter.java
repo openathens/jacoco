@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2023 Mountainminds GmbH & Co. KG and Contributors
+ * Copyright (c) 2009, 2024 Mountainminds GmbH & Co. KG and Contributors
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
@@ -42,18 +42,7 @@ public final class SyntheticFilter implements IFilter {
 		}
 
 		if (KotlinGeneratedFilter.isKotlinClass(context)) {
-			if (KotlinDefaultArgumentsFilter
-					.isDefaultArgumentsMethod(methodNode)) {
-				return;
-			}
-
-			if (KotlinDefaultArgumentsFilter
-					.isDefaultArgumentsConstructor(methodNode)) {
-				return;
-			}
-
-			if (KotlinCoroutineFilter
-					.isImplementationOfSuspendFunction(methodNode)) {
+			if (!methodNode.name.startsWith("access$")) {
 				return;
 			}
 		}

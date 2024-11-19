@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2023 Mountainminds GmbH & Co. KG and Contributors
+ * Copyright (c) 2009, 2024 Mountainminds GmbH & Co. KG and Contributors
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
@@ -52,11 +52,13 @@ import org.objectweb.asm.tree.VarInsnNode;
  */
 public final class KotlinDefaultArgumentsFilter implements IFilter {
 
-	static boolean isDefaultArgumentsMethod(final MethodNode methodNode) {
+	private static boolean isDefaultArgumentsMethod(
+			final MethodNode methodNode) {
 		return methodNode.name.endsWith("$default");
 	}
 
-	static boolean isDefaultArgumentsConstructor(final MethodNode methodNode) {
+	private static boolean isDefaultArgumentsConstructor(
+			final MethodNode methodNode) {
 		if (!"<init>".equals(methodNode.name)) {
 			return false;
 		}

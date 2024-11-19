@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2023 Mountainminds GmbH & Co. KG and Contributors
+ * Copyright (c) 2009, 2024 Mountainminds GmbH & Co. KG and Contributors
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
@@ -24,7 +24,7 @@ public class KotlinGeneratedFilter implements IFilter {
 
 	static final String KOTLIN_METADATA_DESC = "Lkotlin/Metadata;";
 
-	static boolean isKotlinClass(final IFilterContext context) {
+	public static boolean isKotlinClass(final IFilterContext context) {
 		return context.getClassAnnotations().contains(KOTLIN_METADATA_DESC);
 	}
 
@@ -42,6 +42,12 @@ public class KotlinGeneratedFilter implements IFilter {
 		}
 
 		if (hasLineNumber(methodNode)) {
+			for (final AbstractInsnNode i : methodNode.instructions) {
+				if (AbstractInsnNode.LINE == i.getType()) {
+					break;
+				}
+				output.ignore(i, i);
+			}
 			return;
 		}
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2023 Mountainminds GmbH & Co. KG and Contributors
+ * Copyright (c) 2009, 2024 Mountainminds GmbH & Co. KG and Contributors
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
@@ -43,12 +43,15 @@ public final class Filters implements IFilter {
 				new ExhaustiveSwitchFilter(), //
 				new RecordPatternFilter(), //
 				new AnnotationGeneratedFilter(), new KotlinGeneratedFilter(),
+				new KotlinEnumFilter(), //
 				new KotlinLateinitFilter(), new KotlinWhenFilter(),
 				new KotlinWhenStringFilter(),
 				new KotlinUnsafeCastOperatorFilter(),
 				new KotlinNotNullOperatorFilter(),
+				new KotlinInlineClassFilter(),
 				new KotlinDefaultArgumentsFilter(), new KotlinInlineFilter(),
-				new KotlinCoroutineFilter(), new KotlinDefaultMethodsFilter());
+				new KotlinCoroutineFilter(), new KotlinDefaultMethodsFilter(),
+				new KotlinComposeFilter());
 	}
 
 	private Filters(final IFilter... filters) {

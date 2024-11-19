@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2009, 2023 Mountainminds GmbH & Co. KG and Contributors
+ * Copyright (c) 2009, 2024 Mountainminds GmbH & Co. KG and Contributors
  * This program and the accompanying materials are made available under
  * the terms of the Eclipse Public License 2.0 which is available at
  * http://www.eclipse.org/legal/epl-2.0
@@ -60,7 +60,7 @@ public final class TryWithResourcesJavac11Filter implements IFilter {
 	 * <code>null</code> check for resource is omitted when it is initialized
 	 * using <code>new</code>
 	 */
-	private class Matcher extends AbstractMatcher {
+	private static class Matcher extends AbstractMatcher {
 		private boolean withNullCheck;
 
 		private String expectedOwner;
